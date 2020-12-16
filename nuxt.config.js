@@ -5,6 +5,7 @@ module.exports = {
    */
   head: {
     title: process.env.npm_package_name || '',
+
     meta: [
       { charset: 'utf-8' },
       { name: 'viewport', content: 'width=device-width, initial-scale=1' },
@@ -14,7 +15,11 @@ module.exports = {
         content: process.env.npm_package_description || ''
       }
     ],
-    link: [{ rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }]
+    link: [
+      { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
+      { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700;800&display=swap' },
+
+      ]
   },
   /*
    ** Customize the progress-bar color
@@ -23,7 +28,7 @@ module.exports = {
   /*
    ** Global CSS
    */
-  css: [],
+  css: ['@/styles/reset.css', '@/styles/common.css'],
   /*
    ** Plugins to load before mounting the App
    */
@@ -31,6 +36,7 @@ module.exports = {
   /*
    ** Nuxt.js dev-modules
    */
+  telemetry: false,
   buildModules: [
     // Doc: https://github.com/nuxt-community/eslint-module
     '@nuxtjs/eslint-module'
