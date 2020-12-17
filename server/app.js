@@ -12,20 +12,22 @@ io.on('connection', socket => {
       return cb('Данные некорректны')
     }
 
-    socket.join(data.room)
+    const mainRoom = 'mainRoom';
+
+    socket.join(mainRoom)
 
     users.remove(socket.id)
     users.add({
       id: socket.id,
       name: data.name,
-      room: data.room
+      room: mainRoom
     })
 
     cb({userId: socket.id})
-    io.to(data.room).emit('updateUsers', users.getByRoom(data.room))
+    io.to(mainRoom).emit('updateUsers', users.getByRoom(mainRoom))
     socket.emit('newMessage', m('admin', `Добро пожаловать ${data.name}`))
 
-    socket.broadcast.to(data.room)
+    socket.broadcast.to(mainRoom)
     .emit('newMessage', m('admin', `Пользователь ${data.name} зашел.`))
   })
 

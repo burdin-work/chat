@@ -1,12 +1,18 @@
+export const actions = {}
+
 export const state = () => ({
   user: {},
   messages: [],
-  users: []
+  users: [],
+  todos: []
 })
 
 export const mutations = {
   setUser(state,user) {
     state.user = user
+  },
+  updateTodos(state, todos) {
+    state.todos = todos
   },
   SOCKET_newMessage(state, message) {
     state.messages.push(message)
