@@ -3,8 +3,6 @@
     <div class="formWrap">
       <h2>Nuxt Chat</h2>
       <form @submit.prevent="submit">
-        <input v-model="name" type="text" class="userName" placeholder="Name" />
-        <input v-model="room" type="text" class="roomName" placeholder="Room" />
 
         <button type="submit">Log in</button>
       </form>
@@ -13,8 +11,10 @@
 </template>
 
 <script>
-import { mapMutations } from 'vuex'
+import { mapMutations, mapActions } from 'vuex'
+import { generateName, generateAvatar } from './gen_user'
 export default {
+  name: 'index',
   head: {
     title: 'Добро пожаловать в Nuxt чат'
   },
@@ -29,22 +29,24 @@ export default {
   }),
   methods: {
     ...mapMutations(['setUser']),
-    submit() {
-      const user = {
-        name: this.name,
-        room: this.room
-      }
-
-      this.$socket.emit('userJoined', user, (data) => {
-        if (typeof data === 'string') {
-          console.error(data)
-        } else {
-          user.id = data.userId
-          this.setUser(user)
-          this.$router.push('/chat')
-        }
-      })
+    ...mapActions(['identUser']),
+  },
+  mounted() {
+    console.log('mounted!')
+    const user = {
+      name:   generateName(),
+      avatar: generateAvatar(),
+      room: 'mainRoom'
     }
+    this.$socket.emit('userJoined', user, (data) => {
+      if (typeof data === 'string') {
+        console.error(data)
+      } else {
+        this.identUser(user)
+        this.$router.push('/chat')
+
+      }
+    })
   }
 }
 </script>

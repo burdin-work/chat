@@ -1,10 +1,22 @@
 const app = require('express')()
+const bodyParser = require('body-parser')
+const mongoose = require('mongoose')
+const authRoutes = require('./routes/auth.routes')
 const server = require('http').createServer(app)
 const io = require('socket.io')(server)
 const users = require('./users')()
 
-const m = (name, text, id) => ({name, text, id})
+mongoose.connect('mongodb+srv://user47925947254394:sJ28T1kG557jG3l67h@cluster0.egvo5.mongodb.net/chat_db')
+  .then(() => console.log('MongoDB connected...'))
+  .catch(error => console.error(error))
 
+app.use(bodyParser.urlencoded({extended: true}))
+app.use(bodyParser.json())
+
+app.use(authRoutes)
+
+
+const m = (name, text, id) => ({name, text, id})
 io.on('connection', socket => {
 
   socket.on('userJoined', (data, cb) => {
@@ -12,22 +24,22 @@ io.on('connection', socket => {
       return cb('Данные некорректны')
     }
 
-    const mainRoom = 'mainRoom';
+    const room = data.room;
 
-    socket.join(mainRoom)
+    socket.join(room)
 
     users.remove(socket.id)
     users.add({
       id: socket.id,
       name: data.name,
-      room: mainRoom
+      room: room
     })
 
     cb({userId: socket.id})
-    io.to(mainRoom).emit('updateUsers', users.getByRoom(mainRoom))
+    io.to(room).emit('updateUsers', users.getByRoom(room))
     socket.emit('newMessage', m('admin', `Добро пожаловать ${data.name}`))
 
-    socket.broadcast.to(mainRoom)
+    socket.broadcast.to(room)
     .emit('newMessage', m('admin', `Пользователь ${data.name} зашел.`))
   })
 
