@@ -3,8 +3,8 @@ class Users {
     this.users = []
   }
 
-  add(user) {
-    this.users.push(user)
+  reload(users) {
+    this.users = users
   }
 
   get(id) {

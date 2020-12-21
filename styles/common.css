@@ -1,5 +1,7 @@
 body {
   font-family: 'Open Sans';
+  min-width: 380px;
+  overflow: hidden;
 }
 
 button,

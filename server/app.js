@@ -1,63 +1,73 @@
 const app = require('express')()
 const bodyParser = require('body-parser')
 const mongoose = require('mongoose')
-const authRoutes = require('./routes/auth.routes')
+const usersRoutes = require('./routes/users.routes')
+const messagesRoutes = require('./routes/messages.routes')
 const server = require('http').createServer(app)
 const io = require('socket.io')(server)
 const users = require('./users')()
+const moment = require('moment')
 
 mongoose.connect('mongodb+srv://user47925947254394:sJ28T1kG557jG3l67h@cluster0.egvo5.mongodb.net/chat_db')
   .then(() => console.log('MongoDB connected...'))
   .catch(error => console.error(error))
 
-app.use(bodyParser.urlencoded({extended: true}))
+app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json())
 
-app.use(authRoutes)
+app.use(usersRoutes)
+app.use(messagesRoutes)
 
+const m = (senderId, text, _id, time, senderName) => ({ senderId, text, _id, time, senderName })
 
-const m = (name, text, id) => ({name, text, id})
 io.on('connection', socket => {
 
   socket.on('userJoined', (data, cb) => {
-    if(!data.name || !data.room) {
+
+    if (!data.user.name || !data.user.room || !data.user.id) {
       return cb('Данные некорректны')
     }
 
-    const room = data.room;
+    const room = data.user.room
 
-    socket.join(room)
 
-    users.remove(socket.id)
-    users.add({
-      id: socket.id,
-      name: data.name,
-      room: room
-    })
+    socket.join(data.user.room)
 
-    cb({userId: socket.id})
+    users.remove()
+    users.reload(data.users)
+
+    cb({ id: data.user.id })
     io.to(room).emit('updateUsers', users.getByRoom(room))
-    socket.emit('newMessage', m('admin', `Добро пожаловать ${data.name}`))
+
+
+    /*socket.emit('newMessage', m('system',
+      `${data.user.name}`,
+      new Date().getTime(),
+      moment().format('LT'),
+      'admin'))*/
 
     socket.broadcast.to(room)
-    .emit('newMessage', m('admin', `Пользователь ${data.name} зашел.`))
+      .emit('newMessage', m('system', `${data.user.name}`,
+        new Date().getTime(),
+        moment().format('LT'),
+        'admin'))
   })
 
   socket.on('createMessage', (data, cb) => {
-    if(!data.text) {
+    if (!data.text) {
       return cb('текст не может быть пустым')
     }
 
-    const user = users.get(data.id)
-    if(user) {
-      io.to(user.room).emit('newMessage', m(user.name, data.text, data.id))
+    const user = users.get(data.senderId)
+    if (user) {
+      io.to(user.room).emit('newMessage', m(data.senderId, data.text, data._id, data.time, data.senderName))
     }
     cb()
   })
 
   socket.on('disconnect', () => {
     const user = users.remove(socket.id)
-    if(user) {
+    if (user) {
       io.to(user.room).emit('updateUsers', users.getByRoom(user.room))
       io.to(user.room).emit(
         'newMessage',

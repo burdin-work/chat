@@ -3,7 +3,6 @@ const User = require('../models/user.model')
 const router = Router()
 
 
-// api/auth/admin/create
 router.post('/create', async (req, res) => {
 
   const user = new User({
@@ -16,17 +15,17 @@ router.post('/create', async (req, res) => {
   user.id = user._id
   try {
     await user.save()
-    res.json({
-      name: user.name,
-      avatar: user.avatar,
-      id: user.id,
-      room: user.room,
-      online: true
-    })
+    res.json(user)
   } catch (e) {
     console.error(e)
   }
 
+})
+
+
+router.get('/users', async (req, res) => {
+  const users = await User.find()
+  res.json(users)
 })
 
 module.exports = router
