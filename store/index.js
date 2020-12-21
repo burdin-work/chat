@@ -32,7 +32,6 @@ export const actions = {
   },
 
   async sendMessage({ commit, dispatch }, data) {
-
     console.log('I am starting to send message!')
     try {
       const message = await this.$axios.$post('/send_message', data)
@@ -45,12 +44,28 @@ export const actions = {
 
   async getMessages({ commit }, room) {
     try {
-      const messagesRoom = await this.$axios.$get('/messages', room)
+      const messagesRoom = await this.$axios.$get('/messages/' + room)
       commit('updateMessages', messagesRoom)
     } catch (e) {
       console.error(e)
       throw e
     }
+  },
+
+  async joinDialog({ commit, dispatch }, data ) {
+
+    commit('updateUserRoom', data.dialogRoom)
+    localStorage.room = data.dialogRoom
+
+    dispatch('getMessages', data.dialogRoom)
+    dispatch('changeUserRoom', {_id: this.state.user.id, room: data.dialogRoom})
+  },
+
+  async changeUserRoom({dispatch, commit}, {_id, room}) {
+    return await this.$axios.$put('/change_room/' + _id, {room})
+  },
+  async SOCKET_changeUserStatus({dispatch, commit}, {_id, status}) {
+    return await this.$axios.$put('/change_status/' + _id, {status})
   },
 }
 
@@ -66,8 +81,8 @@ export const mutations = {
     }
   },
 
-  updateTodos(state, todos) {
-    state.todos = todos
+  updateUserRoom(state, room) {
+    state.user.room = room
   },
 
   updateMessages(state, messages) {

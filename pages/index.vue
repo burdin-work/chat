@@ -17,6 +17,11 @@ export default {
       getMessages: 'getMessages'
     }),
   },
+  sockets: {
+    connect: function() {
+      console.log('socket connected')
+    }
+  },
   async mounted() {
     console.log('mounted!')
     await this.getUsers()

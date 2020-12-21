@@ -8,7 +8,7 @@
 
   export default {
     name: 'defaultLayout',
-    title: 'Добро пожаловать в Nuxt чат'
+    title: 'Добро пожаловать в Nuxt чат',
   }
 </script>
 

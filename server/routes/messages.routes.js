@@ -1,5 +1,6 @@
 const { Router } = require('express')
 const Message = require('../models/message.model')
+const User = require('../models/user.model')
 const router = Router()
 
 
@@ -22,8 +23,10 @@ router.post('/send_message', async (req, res) => {
   }
 })
 
-router.get('/messages', async (req, res) => {
-  const messages = await Message.find ({room: {$eq : 'mainRoom'}})
+router.get('/messages/:room', async (req, res) => {
+  const room = req.params.room
+  const messages = await Message.find ({room: {$eq : room}})
+
   res.json(messages)
 })
 

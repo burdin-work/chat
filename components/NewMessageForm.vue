@@ -31,6 +31,10 @@
           senderName: this.$store.state.user.name,
         }
 
+        if (!message.text.replace(/\s/g, '')) {
+          return console.error('текст не может быть пустым')
+        }
+
         await this.sendMessage(message)
 
         await this.$socket.emit('createMessage', {
@@ -42,10 +46,6 @@
           } else {
             this.text = ""
           }
-        })
-
-        this.$nextTick(function () {
-          console.log('теперь DOM обновлён')
         })
       }
     }

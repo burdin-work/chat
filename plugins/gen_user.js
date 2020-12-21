@@ -22,7 +22,7 @@ function getRandomInRange(min, max) {
 }
 
 export function generateAvatar() {
-  const index = ''+ getRandomInRange(1000, 3000)
+  const index = ''+ getRandomInRange(1500, 3000)
   console.log(index)
   const avatar = `http://1avatara.ru/pic/animal/animal${index}.jpg`
 

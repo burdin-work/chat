@@ -32,7 +32,7 @@
                   v-if="u._id !== user.id"
                   :key="u._id"
                   class="user"
-                  @click="setInterlocutor(u)"
+                  @click="joinRoom(u)"
                 >
                   <div class="imageWrap">
                     <img :src="u.avatar" alt="avatar">
@@ -85,11 +85,6 @@
       }
     },
     middleware: 'chat',
-    sockets: {
-      connect: function() {
-        console.log('socket connected')
-      }
-    },
     data: () => ({
       toogleStatus: 'online',
       usersFilter: ''
@@ -99,7 +94,28 @@
       NewMessageForm
     },
     methods: {
-      ...mapMutations(['setInterlocutor'])
+      ...mapMutations(['setInterlocutor', 'updateUserRoom']),
+      ...mapActions(['joinDialog']),
+
+      async joinRoom(interlocutor) {
+        let dialogRoom
+        const ownerId = this.$store.state.user.id
+        const interlocutorId = interlocutor._id
+
+        if(ownerId > interlocutorId){
+          dialogRoom = ownerId + '_' + interlocutorId
+        } else {
+          dialogRoom = interlocutorId + '_' + ownerId
+        }
+
+        this.joinDialog({ dialogRoom, interlocutor})
+
+        await this.$socket.emit('joinDialogRoom', dialogRoom, (data) => {
+          if (typeof data === 'string') {
+            console.error(data)
+          }
+        })
+      }
     },
     middleware: ['chat'],
     computed: {
@@ -113,7 +129,7 @@
       const elem = this.$refs.chatWrap
       console.log(elem)
       console.log(elem.clientHeight)
-      elem.scrollTop = elem.clientHeight * 10
+      elem.scrollTop = elem.clientHeight * 100
     }
   }
 </script>

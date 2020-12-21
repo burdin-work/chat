@@ -28,4 +28,28 @@ router.get('/users', async (req, res) => {
   res.json(users)
 })
 
+router.put('/change_room/:id', async (req, res) => {
+  try {
+    const $set = {
+      room: req.body.room
+    }
+    await User.findOneAndUpdate({_id: req.params.id}, $set)
+    res.status(204).json()
+  } catch (e) {
+    res.status(500).json(e)
+  }
+})
+
+router.put('/change_status/:id', async (req, res) => {
+  try {
+    const $set = {
+      online: false
+    }
+    await User.findOneAndUpdate({_id: req.params.id}, $set)
+    res.status(204).json()
+  } catch (e) {
+    res.status(500).json(e)
+  }
+})
+
 module.exports = router
