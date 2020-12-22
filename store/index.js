@@ -11,7 +11,6 @@ export const actions = {
 
   async createUser({ commit, dispatch }, data) {
 
-    console.log('We dont know you, stranger!')
     try {
       const userDB = await this.$axios.$post('/create', data)
       commit('setUser', userDB)
@@ -32,7 +31,6 @@ export const actions = {
   },
 
   async sendMessage({ commit, dispatch }, data) {
-    console.log('I am starting to send message!')
     try {
       const message = await this.$axios.$post('/send_message', data)
       commit('setMessageInfo', message)
@@ -58,14 +56,15 @@ export const actions = {
     localStorage.room = data.dialogRoom
 
     dispatch('getMessages', data.dialogRoom)
-    dispatch('changeUserRoom', {_id: this.state.user.id, room: data.dialogRoom})
+    dispatch('changeUserRoomBD', {_id: this.state.user.id, room: data.dialogRoom})
   },
 
-  async changeUserRoom({dispatch, commit}, {_id, room}) {
+  async changeUserRoomBD({dispatch, commit}, {_id, room}) {
     return await this.$axios.$put('/change_room/' + _id, {room})
   },
-  async SOCKET_changeUserStatus({dispatch, commit}, {_id, status}) {
-    return await this.$axios.$put('/change_status/' + _id, {status})
+  async SOCKET_changeUserStatusBD({dispatch, commit}, {_id, status}) {
+    console.log('66')
+    return await this.$axios.$put('/change_status/' + _id, {status} )
   },
 }
 
@@ -98,9 +97,13 @@ export const mutations = {
   },
 
   SOCKET_newMessage(state, message) {
+    console.log('100')
     state.messages.push(message)
   },
   SOCKET_updateUsers(state, users) {
     state.users = users
+  },
+  SOCKET_changeStatus(state, data ) {
+    state.users.find(user => user.id = data.id).online = data.status
   }
 }

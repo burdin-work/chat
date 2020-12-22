@@ -43,8 +43,9 @@ router.put('/change_room/:id', async (req, res) => {
 router.put('/change_status/:id', async (req, res) => {
   try {
     const $set = {
-      online: false
+      online: req.body.status
     }
+    console.log('48 --- ', req.params.id)
     await User.findOneAndUpdate({_id: req.params.id}, $set)
     res.status(204).json()
   } catch (e) {

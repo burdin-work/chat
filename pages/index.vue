@@ -34,7 +34,6 @@ export default {
         localStorage.avatar &&
         localStorage.room
       ) {
-        console.log('Indentification is good! Hello, ' + localStorage.name)
 
         user = {
           id: localStorage.id,

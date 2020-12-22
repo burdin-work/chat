@@ -23,9 +23,6 @@ const userSchema = new Schema({
     unique: true,
     required: true
   },
-
-
-
 })
 
 module.exports = model('users', userSchema)

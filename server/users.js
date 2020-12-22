@@ -3,19 +3,19 @@ class Users {
     this.users = []
   }
 
-  reload(users) {
-    this.users = users
-  }
-
   get(id) {
     return this.users.find(user => user.id === id)
   }
 
-  remove(id) {
-    const user = this.get(id)
+  add(user) {
+    this.users.push(user)
+  }
+
+  remove(socketId) {
+    const user = this.get(socketId)
 
     if(user) {
-      this.users = this.users.filter(user => user.id !== id)
+      this.users = this.users.filter(u => user.id !== u.id)
     }
 
     return user

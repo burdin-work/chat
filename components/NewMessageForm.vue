@@ -32,7 +32,7 @@
         }
 
         if (!message.text.replace(/\s/g, '')) {
-          return console.error('текст не может быть пустым')
+          return console.error('The text field must not be empty.')
         }
 
         await this.sendMessage(message)

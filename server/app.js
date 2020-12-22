@@ -8,7 +8,6 @@ const io = require('socket.io')(server)
 const users = require('./users')()
 const moment = require('moment')
 
-
 mongoose
   .connect(
     'mongodb+srv://user47925947254394:sJ28T1kG557jG3l67h@cluster0.egvo5.mongodb.net/chat_db'
@@ -33,18 +32,23 @@ const m = (senderId, text, _id, time, senderName) => ({
 })
 
 io.on('connection', (socket) => {
+  let currentUser
+
   socket.on('userJoined', (data, cb) => {
+    currentUser = data.user
+
     if (!data.user.name || !data.user.room || !data.user.id) {
       return cb('Данные некорректны')
     }
     const room = data.user.room
 
     socket.join(room)
+    users.remove(data.user.id)
+    data.user.socketID = socket.id
+    users.add(data.user)
 
-    users.remove()
-    users.reload(data.users)
-
-    cb({ id: data.user.id })
+    socket.emit('changeStatus', { id: currentUser.id, status: true })
+    socket.emit('changeUserStatusBD', { _id: currentUser.id, status: true })
 
     socket.broadcast
       .to(room)
@@ -58,17 +62,16 @@ io.on('connection', (socket) => {
           'admin'
         )
       )
+    cb({ id: data.user.id })
   })
 
   socket.on('joinDialogRoom', (data, cb) => {
     const room = data
     socket.join(room)
-    console.log('I am in new room')
+    cb()
   })
 
-
   socket.on('createMessage', (message, cb) => {
-    console.log('message --- ' + message)
     if (message) {
       io.to(message.room).emit('newMessage', {
         room: message.room,
@@ -81,16 +84,18 @@ io.on('connection', (socket) => {
     cb()
   })
 
-  /*  socket.on('disconnect', () => {
-    const user = users.remove(socket.id)
-    if (user) {
-      io.to(user.room).emit('updateUsers', users.getByRoom(user.room))
-      io.to(user.room).emit(
+  socket.on('disconnect', () => {
+    console.log(currentUser)
+    if (currentUser) {
+      console.log(!!currentUser)
+      io.emit('changeStatus', { id: currentUser.id, status: false })
+      io.emit('changeUserStatusBD', { _id: currentUser.id, status: false })
+      io.to(currentUser.room).emit(
         'newMessage',
-        m('admin', `Пользователь ${user.name} вышел.`)
+        m('admin', `Пользователь ${currentUser.name} вышел.`)
       )
     }
-  })*/
+  })
 })
 
 module.exports = {
