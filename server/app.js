@@ -5,8 +5,8 @@ const usersRoutes = require('./routes/users.routes')
 const messagesRoutes = require('./routes/messages.routes')
 const server = require('http').createServer(app)
 const io = require('socket.io')(server)
-const users = require('./users')()
 const moment = require('moment')
+const axios = require('axios')
 
 mongoose
   .connect(
@@ -23,10 +23,10 @@ app.use(bodyParser.json())
 app.use(usersRoutes)
 app.use(messagesRoutes)
 
-const m = (senderId, text, _id, time, senderName) => ({
+const m = (room, senderId, text, time, senderName) => ({
+  room,
   senderId,
   text,
-  _id,
   time,
   senderName
 })
@@ -43,9 +43,6 @@ io.on('connection', (socket) => {
     const room = data.user.room
 
     socket.join(room)
-    users.remove(data.user.id)
-    data.user.socketID = socket.id
-    users.add(data.user)
 
     socket.emit('changeStatus', { id: currentUser.id, status: true })
     socket.emit('changeUserStatusBD', { _id: currentUser.id, status: true })
@@ -55,19 +52,23 @@ io.on('connection', (socket) => {
       .emit(
         'newMessage',
         m(
-          'system',
-          `${data.user.name}`,
-          new Date().getTime(),
+          currentUser.room,
+          'admin',
+          `User ${currentUser.name} has logged in.`,
           moment().format('LT'),
-          'admin'
+          'system'
         )
       )
+
+    socket.emit('spamBotAnswer')
+
     cb({ id: data.user.id })
   })
 
   socket.on('joinDialogRoom', (data, cb) => {
     const room = data
     socket.join(room)
+    socket.emit('updateUserRoom', room)
     cb()
   })
 
@@ -81,18 +82,78 @@ io.on('connection', (socket) => {
         senderName: message.senderName
       })
     }
-    cb()
+    cb(message)
+  })
+
+  // bots
+  socket.on('echoBotAnswer', (message, cb) => {
+    if (message) {
+      const answer = m(
+        message.room,
+        'echoBot',
+        `${message.text}`,
+        moment().format('LT'),
+        'Echo bot'
+      )
+      io.to(message.room).emit('newMessage', answer)
+      socket.emit('sendBotMessage', answer)
+    }
+  })
+  socket.on('reverseBotAnswer', (message, cb) => {
+    if (message) {
+      const answer = m(
+        message.room,
+        'reverseBot',
+        `${message.text
+          .split('')
+          .reverse()
+          .join('')}`,
+        moment().format('LT'),
+        'Reverse bot'
+      )
+      setTimeout(() => {
+        io.to(message.room).emit('newMessage', answer)
+        socket.emit('sendBotMessage', answer)
+      }, 3000)
+    }
+  })
+
+  socket.on('spamBotAnswer', (message, cb) => {
+    let timerId = setInterval(
+      () =>
+        axios
+          .get('http://api.icndb.com/jokes/random')
+          .then((res) => {
+            const joke = res.data.value.joke
+
+            const answer = m(
+              message.room,
+              'spamBot',
+              joke,
+              moment().format('LT'),
+              'Spam bot'
+            )
+            io.to(message.room).emit('newMessage', answer)
+            socket.emit('sendBotMessage', answer)
+          })
+          .catch(function(error) {}),
+      Math.floor(Math.random() * (120000 - 10000)) + 10000
+    )
   })
 
   socket.on('disconnect', () => {
-    console.log(currentUser)
     if (currentUser) {
-      console.log(!!currentUser)
       io.emit('changeStatus', { id: currentUser.id, status: false })
       io.emit('changeUserStatusBD', { _id: currentUser.id, status: false })
       io.to(currentUser.room).emit(
         'newMessage',
-        m('admin', `Пользователь ${currentUser.name} вышел.`)
+        m(
+          currentUser.room,
+          'admin',
+          `User ${currentUser.name} has logged out.`,
+          moment().format('LT'),
+          'system'
+        )
       )
     }
   })

@@ -4,7 +4,7 @@ class Users {
   }
 
   get(id) {
-    return this.users.find(user => user.id === id)
+    return this.users.find((user) => user.id === id)
   }
 
   add(user) {
@@ -14,15 +14,15 @@ class Users {
   remove(socketId) {
     const user = this.get(socketId)
 
-    if(user) {
-      this.users = this.users.filter(u => user.id !== u.id)
+    if (user) {
+      this.users = this.users.filter((u) => user.id !== u.id)
     }
 
     return user
   }
 
   getByRoom(room) {
-    return this.users.filter(user => user.room === room)
+    return this.users.filter((user) => user.room === room)
   }
 }
 

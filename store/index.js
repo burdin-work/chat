@@ -1,4 +1,3 @@
-
 export const state = () => ({
   user: {},
   interlocutor: {},
@@ -8,9 +7,7 @@ export const state = () => ({
 })
 
 export const actions = {
-
   async createUser({ commit, dispatch }, data) {
-
     try {
       const userDB = await this.$axios.$post('/create', data)
       commit('setUser', userDB)
@@ -50,22 +47,33 @@ export const actions = {
     }
   },
 
-  async joinDialog({ commit, dispatch }, data ) {
+  async joinDialog({ commit, dispatch }, data) {
 
-    commit('updateUserRoom', data.dialogRoom)
+    commit('SOCKET_updateUserRoom', data.dialogRoom)
     localStorage.room = data.dialogRoom
 
     dispatch('getMessages', data.dialogRoom)
-    dispatch('changeUserRoomBD', {_id: this.state.user.id, room: data.dialogRoom})
+    dispatch('changeUserRoomBD', {
+      _id: this.state.user.id,
+      room: data.dialogRoom
+    })
   },
 
-  async changeUserRoomBD({dispatch, commit}, {_id, room}) {
-    return await this.$axios.$put('/change_room/' + _id, {room})
+  async changeUserRoomBD({ dispatch, commit }, { _id, room }) {
+    return await this.$axios.$put('/change_room/' + _id, { room })
   },
-  async SOCKET_changeUserStatusBD({dispatch, commit}, {_id, status}) {
-    console.log('66')
-    return await this.$axios.$put('/change_status/' + _id, {status} )
+
+  async SOCKET_sendBotMessage(message, data) {
+    try {
+      await this.$axios.$post('/send_message', data)
+    } catch (e) {
+      console.error(e)
+      throw e
+    }
   },
+  async SOCKET_changeUserStatusBD({ dispatch, commit }, { _id, status }) {
+    return await this.$axios.$put('/change_status/' + _id, { status })
+  }
 }
 
 export const mutations = {
@@ -80,12 +88,15 @@ export const mutations = {
     }
   },
 
-  updateUserRoom(state, room) {
+  SOCKET_updateUserRoom(state, room) {
     state.user.room = room
   },
 
   updateMessages(state, messages) {
     state.messages = messages
+  },
+  SOCKET_pushNewMessage(state, message) {
+    state.messages.push(message)
   },
 
   setMessageInfo(state, message) {
@@ -97,13 +108,12 @@ export const mutations = {
   },
 
   SOCKET_newMessage(state, message) {
-    console.log('100')
     state.messages.push(message)
   },
   SOCKET_updateUsers(state, users) {
     state.users = users
   },
-  SOCKET_changeStatus(state, data ) {
-    state.users.find(user => user.id = data.id).online = data.status
+  SOCKET_changeStatus(state, data) {
+    state.users.find((user) => (user.id = data.id)).online = data.status
   }
 }

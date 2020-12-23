@@ -33,7 +33,7 @@ router.put('/change_room/:id', async (req, res) => {
     const $set = {
       room: req.body.room
     }
-    await User.findOneAndUpdate({_id: req.params.id}, $set)
+    await User.findOneAndUpdate({ _id: req.params.id }, $set)
     res.status(204).json()
   } catch (e) {
     res.status(500).json(e)
@@ -45,8 +45,7 @@ router.put('/change_status/:id', async (req, res) => {
     const $set = {
       online: req.body.status
     }
-    console.log('48 --- ', req.params.id)
-    await User.findOneAndUpdate({_id: req.params.id}, $set)
+    await User.findOneAndUpdate({ _id: req.params.id }, $set)
     res.status(204).json()
   } catch (e) {
     res.status(500).json(e)

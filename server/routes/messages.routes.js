@@ -11,7 +11,7 @@ router.post('/send_message', async (req, res) => {
     text: req.body.text,
     time: req.body.time,
     senderId: req.body.senderId,
-    senderName: req.body.senderName,
+    senderName: req.body.senderName
   })
   message.id = message._id
 
@@ -25,7 +25,7 @@ router.post('/send_message', async (req, res) => {
 
 router.get('/messages/:room', async (req, res) => {
   const room = req.params.room
-  const messages = await Message.find ({room: {$eq : room}})
+  const messages = await Message.find({ room: { $eq: room } })
 
   res.json(messages)
 })

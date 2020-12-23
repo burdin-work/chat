@@ -24,9 +24,9 @@
                   </button>
                 </div>
 
-                <div class="listUsers">
+                <div class="listUsers layout-scrollbar sb_second">
                   <div
-                    v-for="(u) in shownUsers"
+                    v-for="u in shownUsers"
                     v-if="u._id !== user.id"
                     :key="u._id"
                     class="user"
@@ -34,12 +34,13 @@
                   >
                     <div class="imageWrap">
                       <img :src="u.avatar" alt="avatar" />
-                      <div class="oval"></div>
+                      <div v-if="u.online" class="oval"></div>
                     </div>
                     <div class="userInfoWrap">
                       <span class="userName">{{ u.name }}</span>
                       <span class="lastMessage"
-                        >Lorem liy liudr werr liy liudr werr</span
+                        >Lorem liy liudr werr liy liudr werr liudr werr liy
+                        liudr liudr werr liy</span
                       >
                     </div>
                   </div>
@@ -57,9 +58,24 @@
             </div>
           </div>
           <div class="chatMessages">
+            <div class="messagesHeader">
+              <div class="avatarWrap">
+                <img :src="shownInterlocutor.avatar" alt="" />
+              </div>
+              <div class="messagesHeader__content">
+                <h3>{{ shownInterlocutor.name }}</h3>
+                <p>
+                  Lorem ipsum dolor sit amet, consectetur adipisicing elit.
+                  Commodi delectus dolorum ex laudantium pariatur reiciendis
+                  veniam voluptate! Animi consectetur corporis, doloribus
+                  facilis hic illo iure minima omnis rerum sequi suscipit?
+                </p>
+              </div>
+            </div>
             <div class="messagesWrap layout-scrollbar" ref="chatWrap">
               <Message
-                v-for="(m, i) in messages"
+                v-for="m in messages"
+                v-if="m.room === user.room"
                 :key="m._id"
                 :senderId="m.senderId"
                 :text="m.text"
@@ -103,14 +119,45 @@ export default {
 
     shownUsers: function() {
       if (process.browser) {
+        const filteredUsers = (uList) =>
+          this.users.filter(
+            (o) =>
+              o.name.toLowerCase().indexOf(this.usersFilter.toLowerCase()) >= 0
+          )
+
+        let onlineUsers = this.users.filter((u) => u.online)
+        let offlineUsers = this.users.filter((u) => !u.online)
+
+        let selectedUsers =
+          this.toogleStatus === 'online'
+            ? onlineUsers
+            : onlineUsers.concat(offlineUsers)
+
         return !this.usersFilter.length
-          ? this.users
-          : this.users.filter(
+          ? selectedUsers
+          : selectedUsers.filter(
               (o) =>
-                o.name.toLowerCase().indexOf(this.usersFilter.toLowerCase()) >= 0
+                o.name.toLowerCase().indexOf(this.usersFilter.toLowerCase()) >=
+                0
             )
       } else {
-        return this.users
+        return this.users.filter((u) => u.online)
+      }
+    },
+
+    shownInterlocutor: function() {
+      if (process.browser) {
+        if (this.user.room !== 'mainRoom') {
+
+          let interlocutorId = this.user.room
+            .replace(this.user.id, '')
+            .replace(/\_/g, '')
+          if (interlocutorId.indexOf('Bot') >= 0) interlocutorId += '__'
+
+          return this.users.find((u) => u.id === interlocutorId)
+        } else {
+          return this.users.find((u) => u.room === 'mainRoom')
+        }
       }
     }
   },
@@ -120,22 +167,25 @@ export default {
     NewMessageForm
   },
   methods: {
-    ...mapMutations(['setInterlocutor', 'updateUserRoom']),
+    ...mapMutations(['setInterlocutor', 'SOCKET_updateUserRoom']),
     ...mapActions(['joinDialog']),
 
     async joinRoom(interlocutor) {
       let dialogRoom
-      const ownerId = this.$store.state.user.id
-      const interlocutorId = interlocutor._id
 
-      if (ownerId > interlocutorId) {
-        dialogRoom = ownerId + '_' + interlocutorId
+      if (interlocutor.room === 'mainRoom') {
+        dialogRoom = 'mainRoom'
       } else {
-        dialogRoom = interlocutorId + '_' + ownerId
+        const ownerId = this.$store.state.user.id
+        const interlocutorId = interlocutor.id
+
+        if (ownerId > interlocutorId) {
+          dialogRoom = ownerId + '_' + interlocutorId
+        } else {
+          dialogRoom = interlocutorId + '_' + ownerId
+        }
       }
-
       this.joinDialog({ dialogRoom, interlocutor })
-
       await this.$socket.emit('joinDialogRoom', dialogRoom, (data) => {
         if (typeof data === 'string') {
           console.error(data)
@@ -196,11 +246,18 @@ header h1 {
   grid-area: u;
   height: 100%;
   width: 100%;
-  overflow-y: auto;
   grid-auto-columns: 100%;
   grid-template-rows: 100%;
   height: 100%;
   position: relative;
+}
+
+.listUsers {
+  overflow-y: auto;
+  position: absolute;
+  bottom: 70px;
+  top: 50px;
+  right: 0;
 }
 
 .usersTop {
@@ -208,6 +265,7 @@ header h1 {
 }
 
 .usersFooter {
+  background-color: #fff;
   width: 100%;
   position: absolute;
   bottom: 0;
@@ -268,6 +326,7 @@ header h1 {
 }
 
 .messagesWrap {
+  grid-area: bm;
   position: absolute;
   top: 0;
   left: 0;
@@ -275,10 +334,58 @@ header h1 {
   bottom: 40px;
   padding: 1rem;
   overflow-y: auto;
-  overscroll-behavior: contain;
+  margin-top: 180px;
+  /*overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
   -ms-overflow-style: -ms-autohiding-scrollbar;
-  scrollbar-width: var(--scrollbar-ff-width);
+  scrollbar-width: var(--scrollbar-ff-width);*/
+}
+
+.messagesHeader {
+  grid-area: hm;
+  height: 180px;
+  min-width: 180px !important;
+  background-color: #becbd9;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: nowrap;
+  align-items: center;
+  padding: 0 40px 40px 180px;
+  color: #354149;
+  overflow: hidden;
+}
+
+.avatarWrap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 180px;
+  width: 180px;
+  background-color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.messagesHeader img {
+  border-radius: 5px 0 0 0;
+  height: 100%;
+  width: 100%;
+}
+.messagesHeader h3 {
+  font-size: 24px;
+  font-weight: 600;
+  width: 100%;
+}
+.messagesHeader p {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.messagesHeader__content {
+  margin-top: 25px;
+  margin-left: 25px;
+  width: 100%;
 }
 
 .usersContentWrap {
@@ -358,7 +465,8 @@ header h1 {
 
 /* SCROLLBAR */
 :root {
-  --scrollbar-size: 0.375rem;
+  --scrollbar-size: 0.65rem;
+  --scrollbar-size_2: 0.45rem;
   --scrollbar-minlength: 1.5rem; /* Minimum length of scrollbar thumb (width of horizontal, height of vertical) */
   --scrollbar-ff-width: thin; /* FF-only accepts auto, thin, none */
   --scrollbar-track-color: #becbd9;
@@ -370,12 +478,15 @@ header h1 {
 /* This class controls what elements have the new fancy scrollbar CSS */
 .layout-scrollbar {
   scrollbar-color: var(--scrollbar-color) var(--scrollbar-track-color);
-  margin-top: 15px;
 }
 
 .layout-scrollbar::-webkit-scrollbar {
   height: var(--scrollbar-size);
   width: var(--scrollbar-size);
+}
+.layout-scrollbar.sb_second::-webkit-scrollbar {
+  height: var(--scrollbar-size_2);
+  width: var(--scrollbar-size_2);
 }
 
 .layout-scrollbar::-webkit-scrollbar-track {
@@ -386,7 +497,8 @@ header h1 {
 
 .layout-scrollbar::-webkit-scrollbar-thumb {
   background-color: var(--scrollbar-color);
-  border-radius: 3px;
+  border-radius: 10px;
+  height: 115px;
 }
 
 .layout-scrollbar::-webkit-scrollbar-thumb:hover {
@@ -414,6 +526,34 @@ header h1 {
     grid-auto-columns: 60% 40%;
     grid-template-rows: 100%;
   }
+
+  .messagesHeader {
+    height: 100px;
+    min-width: 100px;
+    padding: 0 0 0 100px;
+  }
+  .messagesHeader__content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+    margin: 0;
+  }
+
+  .avatarWrap {
+    height: 100px;
+    width: 100px;
+  }
+
+  .messagesHeader h3 {
+    font-size: 18px;
+    font-weight: 700;
+    text-align: center;
+  }
+  .messagesHeader p {
+    display: none;
+  }
 }
 
 @media (max-width: 600px) {
@@ -423,6 +563,21 @@ header h1 {
 
   .chat {
     grid-auto-columns: 55% 45%;
+  }
+  .messagesHeader {
+    height: 60px;
+    min-width: 60px;
+    padding: 0 0 0 60px;
+  }
+
+  .avatarWrap {
+    height: 60px;
+    width: 60px;
+  }
+
+  .messagesHeader h3 {
+    font-size: 12px;
+    font-weight: 700;
   }
 }
 </style>

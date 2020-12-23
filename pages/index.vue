@@ -9,13 +9,13 @@ export default {
   name: 'Authorization',
   methods: {
     ...mapMutations({
-      setUser : 'setUser'
+      setUser: 'setUser'
     }),
     ...mapActions({
       getUsers: 'getUsers',
       createUser: 'createUser',
       getMessages: 'getMessages'
-    }),
+    })
   },
   sockets: {
     connect: function() {
@@ -28,13 +28,7 @@ export default {
 
     let user
     if (process.browser) {
-      if (
-        localStorage.id &&
-        localStorage.name &&
-        localStorage.avatar &&
-        localStorage.room
-      ) {
-
+      if (localStorage.id && localStorage.name && localStorage.avatar) {
         user = {
           id: localStorage.id,
           name: localStorage.name,
@@ -52,11 +46,15 @@ export default {
         await this.createUser(user)
       }
 
-      await this.$socket.emit('userJoined', { user , users: this.$store.state.users }, (data) => {
-        if (typeof data === 'string') {
-          console.error(data)
+      await this.$socket.emit(
+        'userJoined',
+        { user, users: this.$store.state.users },
+        (data) => {
+          if (typeof data === 'string') {
+            console.error(data)
+          }
         }
-      })
+      )
 
       if (user) {
         this.getMessages(user.room)
