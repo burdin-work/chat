@@ -101,7 +101,7 @@ export default {
   components: { NewMessageForm, Message },
   head() {
     return {
-      title: `Комната ${this.user.room}`
+      title: `Комната ${this.shownInterlocutor.name}`
     }
   },
   middleware: ['chat'],
@@ -147,6 +147,7 @@ export default {
 
     shownInterlocutor: function() {
       if (process.browser) {
+
         if (this.user.room !== 'mainRoom') {
 
           let interlocutorId = this.user.room
@@ -173,9 +174,6 @@ export default {
     async joinRoom(interlocutor) {
       let dialogRoom
 
-      if (interlocutor.room === 'mainRoom') {
-        dialogRoom = 'mainRoom'
-      } else {
         const ownerId = this.$store.state.user.id
         const interlocutorId = interlocutor.id
 
@@ -184,7 +182,7 @@ export default {
         } else {
           dialogRoom = interlocutorId + '_' + ownerId
         }
-      }
+
       this.joinDialog({ dialogRoom, interlocutor })
       await this.$socket.emit('joinDialogRoom', dialogRoom, (data) => {
         if (typeof data === 'string') {
@@ -335,10 +333,6 @@ header h1 {
   padding: 1rem;
   overflow-y: auto;
   margin-top: 180px;
-  /*overscroll-behavior: contain;
-  -webkit-overflow-scrolling: touch;
-  -ms-overflow-style: -ms-autohiding-scrollbar;
-  scrollbar-width: var(--scrollbar-ff-width);*/
 }
 
 .messagesHeader {

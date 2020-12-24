@@ -38,7 +38,7 @@ io.on('connection', (socket) => {
     currentUser = data.user
 
     if (!data.user.name || !data.user.room || !data.user.id) {
-      return cb('Данные некорректны')
+      return cb('Data is incorrect')
     }
     const room = data.user.room
 
