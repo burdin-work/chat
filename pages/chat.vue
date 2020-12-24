@@ -558,6 +558,7 @@ header h1 {
 
 @media (max-width: 600px) {
   .messagesWrap {
+    margin-top: 60px;
     bottom: 90px;
   }
 
