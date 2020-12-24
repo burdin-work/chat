@@ -175,7 +175,7 @@ export default {
       let dialogRoom
 
       // id of General room
-      if (interlocutor.id === '5fe26d5d96627f2b9458fc21') {
+      if (interlocutor._id === '5fe26d5d96627f2b9458fc21') {
         dialogRoom = 'mainRoom'
       } else {
         const ownerId = this.$store.state.user.id
