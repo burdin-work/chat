@@ -2,7 +2,7 @@
   <div>
     <div v-if="senderId === 'system'" class="system">
       <p class="systemText">
-        User <b>{{ text }}</b> has joined the room.
+        <b>{{ text }}</b>
       </p>
       <hr />
     </div>

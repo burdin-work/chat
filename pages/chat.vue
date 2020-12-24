@@ -174,7 +174,8 @@ export default {
     async joinRoom(interlocutor) {
       let dialogRoom
 
-      if (interlocutor.id === '5fe273f3f811c0237872441c') {
+      // id of General room
+      if (interlocutor.id === '5fe26d5d96627f2b9458fc21') {
         dialogRoom = 'mainRoom'
       } else {
         const ownerId = this.$store.state.user.id
