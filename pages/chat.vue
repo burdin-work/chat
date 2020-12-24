@@ -174,6 +174,9 @@ export default {
     async joinRoom(interlocutor) {
       let dialogRoom
 
+      if (interlocutor.id === '5fe273f3f811c0237872441c') {
+        dialogRoom = 'mainRoom'
+      } else {
         const ownerId = this.$store.state.user.id
         const interlocutorId = interlocutor.id
 
@@ -182,7 +185,7 @@ export default {
         } else {
           dialogRoom = interlocutorId + '_' + ownerId
         }
-
+      }
       this.joinDialog({ dialogRoom, interlocutor })
       await this.$socket.emit('joinDialogRoom', dialogRoom, (data) => {
         if (typeof data === 'string') {
